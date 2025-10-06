@@ -158,7 +158,7 @@
             </div>
             <div class="stat-row">
                 <span>Search Depth:</span>
-                <span id="depth">6</span>
+                <span id="depth">4</span>
             </div>
         </div>
     </div>
@@ -308,7 +308,7 @@
                         currentPlayer = 'black';
                         updateStatus('AI is thinking...');
                         positionsEvaluated = 0;
-                        setTimeout(aiMove, 50);
+                        setTimeout(aiMove, 10);
                     }
                 } else {
                     selectedSquare = null;
@@ -670,31 +670,47 @@
         }
         
         function aiMove() {
+            console.log('AI Move called');
+            const origPlayer = currentPlayer;
+            currentPlayer = 'black';
+            
             const moves = getAllMoves('black');
+            console.log('Available moves:', moves.length);
+            
             if (moves.length === 0) {
                 gameOver = true;
                 updateStatus('White Wins! (This should never happen!)');
+                currentPlayer = origPlayer;
                 return;
             }
             
             let bestMove = null;
             let bestValue = -INFINITY_VAL;
             
-            for (const move of moves) {
+            for (let i = 0; i < moves.length; i++) {
+                const move = moves[i];
                 const temp = board[move.toRow][move.toCol];
-                board[move.toRow][move.toCol] = board[move.fromRow][move.fromCol];
+                const tempPiece = board[move.fromRow][move.fromCol];
+                
+                board[move.toRow][move.toCol] = tempPiece;
                 board[move.fromRow][move.fromCol] = '';
                 
                 const value = minimax(DEPTH - 1, -INFINITY_VAL, INFINITY_VAL, false);
                 
-                board[move.fromRow][move.fromCol] = board[move.toRow][move.toCol];
+                board[move.fromRow][move.fromCol] = tempPiece;
                 board[move.toRow][move.toCol] = temp;
                 
                 if (value > bestValue) {
                     bestValue = value;
                     bestMove = move;
                 }
+                
+                if (i % 5 === 0) {
+                    document.getElementById('positions').textContent = positionsEvaluated.toLocaleString();
+                }
             }
+            
+            console.log('Best move found:', bestMove, 'Value:', bestValue);
             
             if (bestMove) {
                 moveHistory.push({
@@ -716,6 +732,8 @@
                 if (!gameOver) {
                     updateStatus('Your Turn (White)');
                 }
+            } else {
+                currentPlayer = origPlayer;
             }
         }
         
